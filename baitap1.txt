@@ -1,0 +1,160 @@
+use restaurant
+
+
+CREATE TABLE users(
+	user_id int PRIMARY KEY AUTO_INCREMENT,
+	full_name VARCHAR(50),
+	email VARCHAR(50),
+	password VARCHAR(50)
+)
+--------------
+
+CREATE TABLE restaurant (
+	res_id int PRIMARY KEY AUTO_INCREMENT,
+	res_name VARCHAR(50),
+	image VARCHAR(50),
+	description VARCHAR(50)
+)
+CREATE TABLE rate_res(
+	user_id int,
+	res_id int,
+	amount int,
+	date_rate DATE,
+	FOREIGN KEY (user_id) REFERENCES users(user_id),
+	FOREIGN key (res_id) REFERENCES restaurant(res_id)
+)
+CREATE TABLE like_res(
+	user_id int,
+	res_id int,
+	date_like DATE,
+	FOREIGN KEY (user_id) REFERENCES users(user_id),
+	FOREIGN key (res_id) REFERENCES restaurant(res_id)
+)
+-------------
+CREATE TABLE food_type(
+	
+	type_id int PRIMARY KEY AUTO_INCREMENT,
+	type_name VARCHAR(50)
+)
+CREATE TABLE foods (
+	food_id int PRIMARY KEY AUTO_INCREMENT,
+	food_name VARCHAR(50),
+	image VARCHAR(50),
+	price float,
+	description VARCHAR(50),
+	type_id int,
+	FOREIGN KEY (type_id) REFERENCES food_type(type_id)
+)
+CREATE TABLE sub_food(
+	sub_id int PRIMARY KEY AUTO_INCREMENT,
+	sub_name VARCHAR(50),
+	sub_price float,
+	 food_id int,
+	 FOREIGN key (food_id) REFERENCES foods(food_id)
+)
+----------------------
+
+CREATE Table orders(
+ 	user_id int,
+	food_id int,
+	amount int,
+	code varchar(50),
+	arr_sub_id VARCHAR(50),
+	FOREIGN KEY (user_id) REFERENCES users(user_id),
+	FOREIGN KEY (food_id) REFERENCES foods(food_id)
+)
+
+
+------ insert data
+INSERT INTO users (full_name, email, password)
+VALUES ('abc', 'john.doe@example.com', 'password123'),
+	   ('sss', 'jane.smith@example.com', 'password456'),
+INSERT INTO users (full_name, email, password)
+VALUES   ('User 3', 'user.3@example.com', 'password1213'),
+	   ('User 4', 'user.4@example.com', 'password1213'),
+	   ('User 5', 'user.5@example.com', 'password1213'),
+	   ('User 6', 'user.6@example.com', 'password1213'),
+	   ('User 7', 'user.7@example.com', 'password1213'),
+	   ('User 8', 'user.8ive@example.com', 'password1213');
+
+INSERT INTO restaurant (res_name, image, description)
+VALUES ('McDonalds', 'mcdonalds.jpg', 'Fast food restaurant'),('Burger King', 'burgerking.jpg', 'Fast food restaurant');
+
+INSERT INTO restaurant (res_name, image, description)
+VALUES ('res3', 'res3.jpg', 'Fast food restaurant'),('res4', 'res4.jpg', 'Fast food restaurant');
+
+INSERT INTO food_type (type_name)
+VALUES ('Burger'),('Pizza');
+
+INSERT INTO foods (food_name, image, price, description, type_id)
+VALUES ('Big Mac', 'bigmac.jpg', 5.99, 'Delicious burger', 1), ('Pepperoni Pizza', 'pepperonipizza.jpg', 9.99, 'Delicious pizza', 2);
+
+INSERT INTO sub_food (sub_name, sub_price, food_id)
+VALUES ('Extra Cheese', 1.00, 1),('Mushroom', 1.50, 2);
+
+INSERT INTO orders (user_id, food_id, amount, code, arr_sub_id)
+VALUES (1, 1, 2, 'ORD001', '1'), (2, 2, 1, 'ORD002', '2');
+
+INSERT INTO orders (user_id, food_id, amount, code, arr_sub_id)
+VALUES (1, 1, 2, 'ORD001', '1'), (1, 2, 1, 'ORD002', '2');
+
+INSERT INTO orders (user_id, food_id, amount, code, arr_sub_id)
+VALUES (3, 1, 2, 'ORD001', '1'), (4, 2, 1, 'ORD002', '2'),(5, 2, 1, 'ORD002', '2'),(6, 2, 1, 'ORD002', '2');
+
+
+
+INSERT INTO rate_res(user_id, res_id, amount, date_rate)
+VALUES(1, 1, 5, '2022-01-01'),
+      (2, 1, 4, '2022-01-02'),
+      (1, 2, 3, '2022-01-03'),
+      (2, 2, 2, '2022-01-04');
+
+INSERT INTO like_res(user_id, res_id, date_like)
+VALUES(8, 1, '2022-01-01'),
+      (2, 1, '2022-01-02'),
+      (3, 1, '2022-01-03'),
+      (4, 1, '2022-01-04'),
+      (5, 1, '2022-01-01'),
+      (6, 1, '2022-01-01'),
+      (2, 2, '2022-01-02'),
+      (3, 2, '2022-01-03'),
+      (4, 2, '2022-01-04'),
+      (5, 2, '2022-01-01'),
+      (6, 2, '2022-01-01');
+INSERT INTO like_res(user_id, res_id, date_like)
+VALUES(5, 3, '2022-01-01'),
+ 	  (3, 4, '2022-01-01');
+---------------------------------
+--1. find the most 5 users like the restaurant: 
+SELECT lr.user_id, users.full_name, count(users.user_id)  FROM like_res as lr
+join users on lr.user_id = users.user_id
+GROUP BY lr.user_id, users.full_name
+order by count(users.user_id) DESC 
+LIMIT 5
+--2. find 2 most liked restaurant:
+SELECT lr.res_id, rs.res_name , count(rs.res_id)  FROM like_res as lr
+join restaurant as rs on lr.res_id = rs.res_id
+GROUP BY lr.res_id, rs.res_name
+order by count(rs.res_id) DESC 
+LIMIT 2
+--3. find user order the most:
+select od.user_id, count(users.user_id) from orders as od 
+join users on users.user_id= od.user_id
+GROUP BY od.user_id,users.user_id
+order by count(od.user_id) DESC 
+LIMIT 1
+--4. find unactive user
+	
+SELECT us.user_id FROM users us 
+WHERE NOT EXISTS 
+    (SELECT user_id 
+     FROM rate_res rr
+     WHERE us.user_id = rr.user_id)
+     AND NOT EXISTS
+      (SELECT user_id 
+     FROM orders od
+     WHERE us.user_id = od.user_id)
+     AND NOT EXISTS
+      (SELECT user_id 
+     FROM like_res lr
+     WHERE us.user_id = lr.user_id)
