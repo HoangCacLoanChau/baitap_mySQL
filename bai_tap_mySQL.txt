@@ -148,7 +148,7 @@ GROUP BY od.user_id,users.user_id
 order by count(od.user_id) DESC 
 LIMIT 1
 
---4. find unactive user
+--4. find unactive user:
 SELECT us.user_id FROM users us 
 WHERE NOT EXISTS 
     (SELECT user_id 
